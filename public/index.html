@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texas Hold'Ex</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1923;
+    --surface: #1a2535;
+    --surface2: #223044;
+    --border: rgba(255,255,255,0.10);
+    --border2: rgba(255,255,255,0.18);
+    --text: #e8edf2;
+    --muted: #7a8fa6;
+    --blue: #3b82f6;
+    --blue-dim: #1e3a5f;
+    --green: #22c55e;
+    --green-dim: #14532d;
+    --red: #ef4444;
+    --red-dim: #450a0a;
+    --gold: #f59e0b;
+    --gold-dim: #451a03;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  #app { max-width: 780px; margin: 0 auto; padding: 1.25rem; }
+
+  /* ── Typography ── */
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  h2 { font-size: 17px; font-weight: 600; }
+  h3 { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Card ── */
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+
+  /* ── Playing cards ── */
+  .card-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .pcard {
+    width: 52px; height: 72px; border-radius: 7px; border: 0.5px solid rgba(255,255,255,0.15);
+    background: #fff; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 2px; flex-shrink: 0;
+  }
+  .pcard .rank { font-size: 14px; font-weight: 700; line-height: 1; color: #111; }
+  .pcard .suit { font-size: 22px; line-height: 1; }
+  .pcard.red .rank, .pcard.red .suit { color: #c0392b; }
+  .pcard.black .rank, .pcard.black .suit { color: #111; }
+  .pcard.sm { width: 38px; height: 54px; }
+  .pcard.sm .rank { font-size: 11px; }
+  .pcard.sm .suit { font-size: 16px; }
+  .pcard.hidden { background: #1e3a5f; border-color: #2563eb55; }
+
+  /* ── Buttons ── */
+  btn, .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity .15s; text-decoration: none; }
+  .btn:hover { opacity: .85; }
+  .btn-blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-red { background: var(--red); border-color: var(--red); color: #fff; }
+  .btn-gold { background: var(--gold); border-color: var(--gold); color: #111; }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* ── Inputs ── */
+  input[type=text], input[type=number] {
+    background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+    color: var(--text); padding: 8px 12px; font-size: 14px; outline: none; width: 100%;
+  }
+  input[type=text]:focus, input[type=number]:focus { border-color: var(--blue); }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+
+  /* ── Tags ── */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); }
+  .tag-green { background: var(--green-dim); color: var(--green); }
+  .tag-red { background: var(--red-dim); color: var(--red); }
+  .tag-gold { background: var(--gold-dim); color: var(--gold); }
+
+  /* ── Grid utils ── */
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+  .row > * { flex: 1; min-width: 140px; }
+  .gap-sm { gap: 6px; }
+  .mt { margin-top: 0.75rem; }
+  .mt2 { margin-top: 1.25rem; }
+
+  /* ── Lobby player list ── */
+  .player-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 13px; }
+  .player-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  #players-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0.75rem 0; }
+
+  /* ── Instance tabs ── */
+  .tabs { display: flex; gap: 6px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .tab { padding: 6px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 13px; cursor: default; }
+  .tab.active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue-dim); }
+  .tab.done { background: var(--green-dim); color: var(--green); border-color: var(--green-dim); }
+
+  /* ── Market price boxes ── */
+  .price-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0.75rem 0; }
+  .price-box { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; text-align: center; min-width: 80px; }
+  .price-box .pl { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .price-box .pv { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ── Leaderboard ── */
+  .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
+  .pnl-pos { color: var(--green); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pnl-neg { color: var(--red); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ── Reveal grid ── */
+  .reveal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .reveal-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 0.75rem; border: 0.5px solid var(--border); }
+
+  /* ── Score ── */
+  .score-big { font-size: 32px; font-weight: 800; text-align: center; padding: 0.75rem; font-variant-numeric: tabular-nums; }
+
+  /* ── Room code ── */
+  .room-code { font-size: 32px; font-weight: 800; letter-spacing: 6px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  /* ── Waiting overlay ── */
+  .waiting { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  /* ── Toast ── */
+  #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; display: none; z-index: 999; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════════ LOBBY ENTRY ══════════════════ -->
+<div id="screen-entry" class="screen active">
+  <div style="text-align:center;padding:2rem 0 1.5rem;">
+    <h1>Texas Hold'Ex</h1>
+    <p style="margin-top:6px;">A market-making trading game</p>
+  </div>
+  <div class="card">
+    <div style="margin-bottom:1rem;">
+      <label>Your name</label>
+      <input type="text" id="entry-name" placeholder="e.g. Alice" maxlength="20">
+    </div>
+    <div class="row">
+      <div>
+        <label>Create a new room</label>
+        <button class="btn btn-blue" style="width:100%;" onclick="createRoom()">Create room</button>
+      </div>
+      <div>
+        <label>Join existing room</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="join-code" placeholder="Room code" maxlength="5" style="text-transform:uppercase;width:120px;">
+          <button class="btn btn-gold" onclick="joinRoom()">Join</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ LOBBY ══════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+    <h1>Texas Hold'Ex</h1>
+    <div>
+      <span style="font-size:12px;color:var(--muted);">Room code</span><br>
+      <span class="room-code" id="lobby-code"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Players in room</h3>
+    <div id="players-list"></div>
+    <p id="lobby-hint"></p>
+    <div id="start-btn-wrap" style="margin-top:0.75rem;display:none;">
+      <button class="btn btn-green" onclick="startGame()">Deal cards →</button>
+    </div>
+  </div>
+  <div class="card" id="leaderboard-card" style="display:none;">
+    <h3 style="margin-bottom:0.5rem;">Leaderboard</h3>
+    <div id="lobby-leaderboard"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ AUCTION ══════════════════ -->
+<div id="screen-auction" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px;">
+    <h2>Blind Auction</h2>
+    <span class="room-code" id="auction-code" style="font-size:20px;letter-spacing:4px;"></span>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Your hand</h3>
+    <div class="card-row" id="auction-hand"></div>
+  </div>
+  <div class="card">
+    <p style="margin-bottom:0.75rem;">Bid your desired spread <strong>k</strong>. Lowest bidder becomes market maker and earns <strong>k pts per trade</strong>. Ties broken randomly.</p>
+    <label>Your bid (spread k)</label>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+      <input type="number" id="bid-input" min="0" step="1" placeholder="e.g. 3" style="width:120px;">
+      <button class="btn btn-blue" id="bid-btn" onclick="submitBid()">Submit bid</button>
+    </div>
+    <div id="bid-status" class="mt" style="font-size:13px;color:var(--muted);"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Bids received</h3>
+    <div id="bid-tracker"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ MARKET ══════════════════ -->
+<div id="screen-market" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:8px;">
+    <h2>Market Making</h2>
+    <span class="room-code" id="market-code" style="font-size:20px;letter-spacing:4px;"></span>
+  </div>
+  <div id="mm-banner" class="card" style="border-color:var(--blue);background:var(--blue-dim);">
+    <div id="mm-banner-text"></div>
+  </div>
+  <div class="tabs" id="market-tabs"></div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Community cards</h3>
+    <div class="card-row" id="market-community"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Your hand</h3>
+    <div class="card-row" id="market-hand"></div>
+  </div>
+  <div id="market-panel"></div>
+</div>
+
+<!-- ══════════════════ RESULTS ══════════════════ -->
+<div id="screen-results" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:8px;">
+    <h2>Round Results</h2>
+    <span class="room-code" id="results-code" style="font-size:20px;letter-spacing:4px;"></span>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Community cards</h3>
+    <div class="card-row" id="results-community"></div>
+    <div class="score-big" id="results-score"></div>
+    <p style="text-align:center;">score = Σ black card values − Σ red card values &nbsp;(A=11, J/Q/K=10)</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Players this round</h3>
+    <div class="reveal-grid" id="results-players"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Leaderboard</h3>
+    <div id="results-leaderboard"></div>
+  </div>
+  <div id="new-round-wrap" style="display:none;margin-top:0.5rem;">
+    <button class="btn btn-green" onclick="newRound()">New round →</button>
+  </div>
+  <p id="new-round-wait" style="margin-top:0.75rem;" class="waiting"></p>
+</div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+const socket = io();
+let myId = null;
+let currentState = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+function pcardHTML(c, sm) {
+  if (!c) return `<div class="pcard${sm?' sm':''} hidden"></div>`;
+  const col = c.red ? 'red' : 'black';
+  const sz = sm ? ' sm' : '';
+  return `<div class="pcard${sz} ${col}"><span class="rank">${c.rank}</span><span class="suit">${c.suit}</span></div>`;
+}
+function pnlClass(v) { return v >= 0 ? 'pnl-pos' : 'pnl-neg'; }
+function pnlStr(v)   { return (v >= 0 ? '+' : '') + v.toFixed(1); }
+function playerName(state, id) {
+  const p = state.players.find(p => p.id === id);
+  return p ? p.name : id.slice(0,6);
+}
+
+// ── Entry ────────────────────────────────────────────────────────────────────
+function createRoom() {
+  const name = document.getElementById('entry-name').value.trim();
+  if (!name) { toast('Enter your name'); return; }
+  socket.emit('createRoom', { name });
+}
+function joinRoom() {
+  const name = document.getElementById('entry-name').value.trim();
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!name) { toast('Enter your name'); return; }
+  if (!code)  { toast('Enter a room code'); return; }
+  socket.emit('joinRoom', { roomId: code, name });
+}
+
+// ── Lobby ─────────────────────────────────────────────────────────────────────
+function startGame() { socket.emit('startGame'); }
+
+// ── Auction ───────────────────────────────────────────────────────────────────
+function submitBid() {
+  const v = parseFloat(document.getElementById('bid-input').value);
+  if (isNaN(v) || v < 0) { toast('Enter a valid bid'); return; }
+  document.getElementById('bid-btn').disabled = true;
+  document.getElementById('bid-status').textContent = 'Bid submitted — waiting for others…';
+  socket.emit('submitBid', { bid: v });
+}
+
+// ── Market ────────────────────────────────────────────────────────────────────
+function postMarket() {
+  const v = parseFloat(document.getElementById('v-input').value);
+  if (isNaN(v)) { toast('Enter a sell price'); return; }
+  socket.emit('postMarket', { v });
+}
+function takePosition(pos) { socket.emit('takePosition', { position: pos }); }
+
+// ── Results ───────────────────────────────────────────────────────────────────
+function newRound() { socket.emit('newRound'); }
+
+// ── State renderer ────────────────────────────────────────────────────────────
+socket.on('state', (state) => {
+  currentState = state;
+  myId = state.myId;
+  renderState(state);
+});
+socket.on('error', (msg) => toast(msg));
+
+function renderState(s) {
+  switch (s.phase) {
+    case 'lobby':    renderLobby(s);   showScreen('lobby');   break;
+    case 'auction':  renderAuction(s); showScreen('auction'); break;
+    case 'market':   renderMarket(s);  showScreen('market');  break;
+    case 'results':  renderResults(s); showScreen('results'); break;
+  }
+}
+
+// ── Lobby render ──────────────────────────────────────────────────────────────
+function renderLobby(s) {
+  document.getElementById('lobby-code').textContent = s.roomId;
+  const list = document.getElementById('players-list');
+  list.innerHTML = s.players.map(p =>
+    `<div class="player-pill"><span class="dot"></span>${p.name}${p.id === s.host ? ' 👑' : ''}</div>`
+  ).join('');
+  const isHost = s.myId === s.host;
+  document.getElementById('lobby-hint').textContent = isHost
+    ? `Share the room code with friends, then start when everyone has joined.`
+    : `Waiting for the host to start the game…`;
+  document.getElementById('start-btn-wrap').style.display = isHost ? 'block' : 'none';
+
+  // Leaderboard if scores exist
+  const hasScores = Object.values(s.leaderboard).some(v => v !== 0);
+  const lbCard = document.getElementById('leaderboard-card');
+  lbCard.style.display = hasScores ? 'block' : 'none';
+  if (hasScores) renderLeaderboard(s, 'lobby-leaderboard');
+}
+
+// ── Auction render ─────────────────────────────────────────────────────────────
+function renderAuction(s) {
+  document.getElementById('auction-code').textContent = s.roomId;
+  const myHand = s.hands[s.myId] || [];
+  document.getElementById('auction-hand').innerHTML = myHand.map(c => pcardHTML(c)).join('');
+
+  // Bid tracker
+  const tracker = document.getElementById('bid-tracker');
+  tracker.innerHTML = s.players.map(p => {
+    const hasBid = p.id in s.bids;
+    return `<div class="lb-row"><span>${p.name}</span><span>${hasBid ? '✓ submitted' : '…'}</span></div>`;
+  }).join('');
+
+  // If already bid, disable
+  if (s.myId in s.bids) {
+    document.getElementById('bid-btn').disabled = true;
+    document.getElementById('bid-status').textContent = 'Bid submitted — waiting for others…';
+  }
+}
+
+// ── Market render ──────────────────────────────────────────────────────────────
+function renderMarket(s) {
+  document.getElementById('market-code').textContent = s.roomId;
+  const mmName = playerName(s, s.marketMaker);
+  const isMe = s.myId === s.marketMaker;
+  document.getElementById('mm-banner-text').innerHTML =
+    `<strong style="color:var(--blue);">Market Maker: ${mmName}</strong>&nbsp;&nbsp;<span style="font-size:13px;color:var(--muted);">spread k = ${s.spread} pts per trade</span>${isMe ? `<span class="tag tag-gold" style="margin-left:8px;">That's you!</span>` : ''}`;
+
+  // Tabs
+  const tabLabels = ['No flop', '3-card flop', '5-card flop'];
+  document.getElementById('market-tabs').innerHTML = tabLabels.map((lbl, i) => {
+    let cls = 'tab';
+    if (i < s.currentInstance || s.instances[i].done) cls += ' done';
+    else if (i === s.currentInstance) cls += ' active';
+    return `<div class="${cls}">${lbl}</div>`;
+  }).join('');
+
+  // Community
+  document.getElementById('market-community').innerHTML = s.community.map(c => pcardHTML(c)).join('');
+
+  // Hand
+  document.getElementById('market-hand').innerHTML = (s.hands[s.myId] || []).map(c => pcardHTML(c)).join('');
+
+  // Panel
+  const inst = s.instances[s.currentInstance];
+  const panel = document.getElementById('market-panel');
+
+  if (inst.done) {
+    panel.innerHTML = `<div class="card"><p style="color:var(--green);">✓ All instances complete — calculating results…</p></div>`;
+    return;
+  }
+
+  if (inst.v === null) {
+    // No price posted yet
+    if (isMe) {
+      panel.innerHTML = `
+        <div class="card">
+          <h3 style="margin-bottom:0.5rem;">Post your market</h3>
+          <p style="margin-bottom:0.75rem;">Set sell price <strong>v</strong>. Others can buy at v+${s.spread} (long) or sell at v (short).</p>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="number" id="v-input" step="1" placeholder="sell price v" style="width:140px;">
+            <span style="color:var(--muted);font-size:13px;">→ market: <span id="v-preview">? @ ?</span></span>
+          </div>
+          <button class="btn btn-blue mt" onclick="postMarket()">Post market →</button>
+        </div>`;
+      setTimeout(() => {
+        const vi = document.getElementById('v-input');
+        if (vi) vi.oninput = function() {
+          const v = parseFloat(this.value);
+          document.getElementById('v-preview').textContent = isNaN(v) ? '? @ ?' : `${v} @ ${v + s.spread}`;
+        };
+      }, 0);
+    } else {
+      panel.innerHTML = `<div class="card"><p class="waiting">Waiting for ${mmName} to post the market…</p></div>`;
+    }
+    return;
+  }
+
+  // Price posted
+  const buyPrice = inst.v + s.spread;
+  const sellPrice = inst.v;
+  const myPos = inst.positions[s.myId];
+  const otherCount = s.players.filter(p => p.id !== s.marketMaker).length;
+  const posCount = Object.keys(inst.positions).length;
+
+  let actionHTML = '';
+  if (!isMe) {
+    if (myPos) {
+      actionHTML = `<span class="tag ${myPos === 'long' ? 'tag-blue' : 'tag-red'}">${myPos} @ ${myPos === 'long' ? buyPrice : sellPrice}</span>`;
+    } else {
+      actionHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.75rem;">
+          <button class="btn btn-blue" onclick="takePosition('long')">Long @ ${buyPrice}</button>
+          <button class="btn btn-red" onclick="takePosition('short')">Short @ ${sellPrice}</button>
+        </div>`;
+    }
+  } else {
+    actionHTML = `<p class="waiting" style="margin-top:0.5rem;">${posCount}/${otherCount} players have positioned…</p>`;
+  }
+
+  // Other players' positions
+  const othersHTML = s.players.filter(p => p.id !== s.marketMaker).map(p => {
+    const pos = inst.positions[p.id];
+    return `<div class="lb-row"><span>${p.name}${p.id === s.myId ? ' (you)' : ''}</span><span>${pos ? `<span class="tag ${pos === 'long' ? 'tag-blue' : 'tag-red'}">${pos}</span>` : '…'}</span></div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="card">
+      <h3 style="margin-bottom:0.5rem;">Current market (instance ${s.currentInstance + 1})</h3>
+      <div class="price-row">
+        <div class="price-box"><div class="pl">Sell (short)</div><div class="pv" style="color:var(--red);">${sellPrice}</div></div>
+        <span style="color:var(--muted);font-size:18px;">@</span>
+        <div class="price-box"><div class="pl">Buy (long)</div><div class="pv" style="color:var(--blue);">${buyPrice}</div></div>
+      </div>
+      ${actionHTML}
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.5rem;">Positions</h3>
+      ${othersHTML}
+    </div>`;
+}
+
+// ── Results render ─────────────────────────────────────────────────────────────
+function renderResults(s) {
+  document.getElementById('results-code').textContent = s.roomId;
+
+  // Community
+  document.getElementById('results-community').innerHTML = s.community.map(c => pcardHTML(c)).join('');
+
+  // Score
+  let score = 0;
+  for (const c of s.community) score += (c.red ? -1 : 1) * cardVal(c.rank);
+  for (const p of s.players) {
+    for (const c of (s.hands[p.id] || [])) score += (c.red ? -1 : 1) * cardVal(c.rank);
+  }
+  const sd = document.getElementById('results-score');
+  sd.textContent = (score >= 0 ? '+' : '') + score;
+  sd.style.color = score > 0 ? 'var(--green)' : score < 0 ? 'var(--red)' : 'var(--text)';
+
+  // Players
+  const grid = document.getElementById('results-players');
+  grid.innerHTML = s.players.map(p => {
+    const isMM = p.id === s.marketMaker;
+    const pnl = s.roundPnl[p.id] || 0;
+    const handHTML = (s.hands[p.id] || []).map(c => pcardHTML(c, true)).join('');
+    let extra = '';
+    if (!isMM) {
+      extra = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">' +
+        s.instances.map((inst, idx) => {
+          const pos = inst.positions[p.id];
+          return `<span class="tag ${pos === 'long' ? 'tag-blue' : 'tag-red'}">I${idx+1}: ${pos}</span>`;
+        }).join('') + '</div>';
+    } else {
+      const trades = s.players.filter(q => q.id !== s.marketMaker).length * 3;
+      const spreadIncome = trades * s.spread;
+      const directional = pnl - spreadIncome;
+      extra = `<div style="margin-top:6px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px;">
+        <span>Spread income: ${trades} × ${s.spread} = <strong style="color:var(--green);">+${spreadIncome.toFixed(1)}</strong></span>
+        <span>Directional P&L: <strong style="color:${directional >= 0 ? 'var(--green)' : 'var(--red)'};">${directional >= 0 ? '+' : ''}${directional.toFixed(1)}</strong></span>
+      </div>`;
+    }
+    return `<div class="reveal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+        <span style="font-weight:600;font-size:14px;">${p.name}${isMM ? ' <span class="tag tag-gold" style="font-size:11px;">MM</span>' : ''}</span>
+        <span class="${pnlClass(pnl)}">${pnlStr(pnl)} pts</span>
+      </div>
+      <div class="card-row" style="margin-top:8px;">${handHTML}</div>
+      ${extra}
+    </div>`;
+  }).join('');
+
+  renderLeaderboard(s, 'results-leaderboard');
+
+  const isHost = s.myId === s.host;
+  document.getElementById('new-round-wrap').style.display = isHost ? 'block' : 'none';
+  document.getElementById('new-round-wait').textContent = isHost ? '' : 'Waiting for host to start new round…';
+}
+
+function cardVal(rank) {
+  if (rank === 'A') return 11;
+  if (['J','Q','K'].includes(rank)) return 10;
+  return parseInt(rank);
+}
+
+function renderLeaderboard(s, elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const sorted = [...s.players].sort((a, b) => (s.leaderboard[b.id] || 0) - (s.leaderboard[a.id] || 0));
+  el.innerHTML = sorted.map((p, i) => {
+    const v = s.leaderboard[p.id] || 0;
+    return `<div class="lb-row"><span>#${i+1} ${p.name}</span><span class="${pnlClass(v)}" style="font-variant-numeric:tabular-nums;">${pnlStr(v)} pts</span></div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
