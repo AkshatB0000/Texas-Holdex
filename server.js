@@ -32,7 +32,7 @@ function newDeck() {
   return d;
 }
 
-const AUCTION_SECONDS = 8;
+const AUCTION_SECONDS = 13;
 
 function initRoom(roomId) {
   rooms[roomId] = {

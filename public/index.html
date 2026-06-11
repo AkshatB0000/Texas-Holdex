@@ -169,10 +169,14 @@
     </div>
     <p style="text-align:center;margin-bottom:0.75rem;">Bid a spread lower than the current. No bid in 8 s = winner locked in.</p>
     <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
-      <input type="number" id="bid-input" min="0" step="0.5" placeholder="your spread bid" style="width:160px;">
+      <input type="number" id="bid-input" min="0" step="0.5" placeholder="your spread bid" style="width:160px;" onkeydown="if(event.key==='Enter')submitBid();">
       <button class="btn btn-gold" id="bid-btn" onclick="submitBid()">Bid ↓</button>
     </div>
     <div id="bid-error" style="text-align:center;font-size:13px;color:var(--red);margin-top:6px;"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:0.5rem;">Players</h3>
+    <div id="auction-players" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
   </div>
   <div class="card">
     <h3 style="margin-bottom:0.5rem;">Bid history</h3>
@@ -359,6 +363,12 @@ function renderAuction(s) {
       bidLog.push({ bid: auc.currentBid, leader: auc.currentLeader, name: playerName(s, auc.currentLeader) });
     }
   }
+  // Player list
+  const aplEl = document.getElementById('auction-players');
+  if (aplEl) aplEl.innerHTML = s.players.map(p =>
+    `<div class="player-pill"><span class="dot" style="background:${p.id===auc.currentLeader?'var(--gold)':'var(--green)'}"></span>${p.name}${p.id===s.myId?' (you)':''}${p.id===auc.currentLeader?' 🏆':''}</div>`
+  ).join('');
+
   const logEl = document.getElementById('bid-log');
   if (bidLog.length === 0) {
     logEl.innerHTML = '<p class="waiting">No bids yet — anyone can open.</p>';
@@ -383,7 +393,7 @@ function startTimer(timerEnd) {
 
   timerInterval = setInterval(() => {
     const remaining = Math.max(0, (timerEnd - Date.now()) / 1000);
-    const frac = remaining / 8;
+    const frac = remaining / 13;
     arc.style.strokeDashoffset = CIRC * (1 - frac);
     arc.style.stroke = remaining <= 2 ? 'var(--red)' : remaining <= 4 ? 'var(--gold)' : 'var(--green)';
     label.textContent = Math.ceil(remaining);
@@ -465,15 +475,16 @@ function renderMarket(s) {
   }
 
   // Positions table — MM sees names, others just see counts
+  const allPositioned = posCount === otherPlayers.length;
   let posTableHTML = '';
-  if (isMe) {
-    // MM sees full breakdown
+  if (isMe || allPositioned) {
+    // MM always sees names; everyone sees names once all have positioned
     posTableHTML = otherPlayers.map(p => {
       const pos = inst.positions[p.id];
       return `<div class="lb-row"><span>${p.name}</span><span>${pos ? `<span class="tag ${pos==='long'?'tag-blue':'tag-red'}">${pos} @ ${pos==='long'?buyPrice:sellPrice}</span>` : '…'}</span></div>`;
     }).join('');
   } else {
-    // Non-MM sees anonymous count
+    // Non-MM sees anonymous count while waiting
     const longs  = Object.values(inst.positions).filter(p => p==='long').length;
     const shorts = Object.values(inst.positions).filter(p => p==='short').length;
     posTableHTML = `
