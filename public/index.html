@@ -18,7 +18,7 @@
     --radius: 10px; --radius-sm: 6px;
   }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
-  #app { max-width: 780px; margin: 0 auto; padding: 1.25rem; }
+  #app { }
   h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
   h2 { font-size: 17px; font-weight: 600; }
   h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -91,11 +91,42 @@
   .bid-log-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
   .bid-log-row.new { color: var(--gold); }
 
+
+  /* ── Layout ── */
+  #layout { display: flex; gap: 1rem; max-width: 1100px; margin: 0 auto; padding: 1.25rem; align-items: flex-start; }
+  #app { flex: 1; min-width: 0; padding: 0; }
+  #sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  @media (max-width: 720px) {
+    #layout { flex-direction: column; padding: 0.75rem; }
+    #sidebar { width: 100%; position: static; }
+    #app { max-width: 100%; }
+  }
+
+  /* ── Sidebar cards ── */
+  .sb-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+  .sb-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.5rem; }
+  .sb-player-row { display: flex; align-items: center; gap: 7px; padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .sb-player-row:last-child { border-bottom: none; }
+  .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .sb-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sb-pnl { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  /* ── Tx log ── */
+  #sb-txlog { max-height: 340px; overflow-y: auto; }
+  .tx-row { padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; display: flex; flex-direction: column; gap: 1px; }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-action { font-weight: 600; }
+  .tx-buy  { color: var(--blue); }
+  .tx-sell { color: var(--red); }
+  .tx-bid  { color: var(--gold); }
+  .tx-meta { color: var(--muted); font-size: 11px; }
+
   #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; display: none; z-index: 999; }
 </style>
 </head>
 <body>
-<div id="app">
+<div id="layout">
+  <div id="app">
 
 <!-- ENTRY -->
 <div id="screen-entry" class="screen active">
@@ -231,7 +262,21 @@
   <p id="new-round-wait" class="waiting" style="margin-top:0.75rem;"></p>
 </div>
 
-</div>
+</div><!-- /app -->
+
+  <!-- ══ SIDEBAR ══ -->
+  <div id="sidebar">
+    <div class="sb-card" id="sb-players-card">
+      <div class="sb-title">Players</div>
+      <div id="sb-players"></div>
+    </div>
+    <div class="sb-card" id="sb-txlog-card">
+      <div class="sb-title">Transaction Log</div>
+      <div id="sb-txlog"><p class="waiting" style="padding:6px 0;">No activity yet</p></div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
 <div id="toast"></div>
 
 <script>
@@ -309,6 +354,7 @@ socket.on('error', (msg) => {
 });
 
 function renderState(s) {
+  renderSidebar(s);
   switch (s.phase) {
     case 'lobby':   renderLobby(s);   showScreen('lobby');   break;
     case 'auction': renderAuction(s); showScreen('auction'); break;
@@ -571,6 +617,51 @@ function renderLeaderboard(s, elId) {
     return `<div class="lb-row"><span>#${i+1} ${p.name}</span><span class="${pnlClass(v)}">${pnlStr(v)} pts</span></div>`;
   }).join('');
 }
+
+function renderSidebar(s) {
+  // Players panel
+  const playersEl = document.getElementById('sb-players');
+  if (playersEl) {
+    playersEl.innerHTML = s.players.map(p => {
+      const pnl = (s.leaderboard[p.id] || 0);
+      const isMe = p.id === s.myId;
+      const isMM = p.id === s.marketMaker;
+      const dotColor = isMM ? 'var(--gold)' : 'var(--green)';
+      const badge = isMM ? ' <span style="font-size:10px;color:var(--gold);">MM</span>' : '';
+      const meTag = isMe ? ' <span style="font-size:10px;color:var(--muted);">(you)</span>' : '';
+      return `<div class="sb-player-row">
+        <span class="sb-dot" style="background:${dotColor};"></span>
+        <span class="sb-name">${p.name}${badge}${meTag}</span>
+        <span class="sb-pnl ${pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Transaction log
+  const txEl = document.getElementById('sb-txlog');
+  if (txEl && s.txLog) {
+    if (s.txLog.length === 0) {
+      txEl.innerHTML = '<p class="waiting" style="padding:6px 0;font-size:12px;">No activity yet</p>';
+    } else {
+      txEl.innerHTML = [...s.txLog].reverse().map(tx => {
+        if (tx.type === 'bid') {
+          return `<div class="tx-row">
+            <span class="tx-action tx-bid">BID ↓ ${tx.spread}</span>
+            <span class="tx-meta">${tx.playerName}</span>
+          </div>`;
+        } else {
+          const cls = tx.type === 'buy' ? 'tx-buy' : 'tx-sell';
+          const label = tx.type === 'buy' ? 'LONG' : 'SHORT';
+          return `<div class="tx-row">
+            <span class="tx-action ${cls}">${label} @ ${tx.price} <span style="font-size:10px;color:var(--muted);">I${tx.instance}</span></span>
+            <span class="tx-meta">${tx.playerName}</span>
+          </div>`;
+        }
+      }).join('');
+    }
+  }
+}
+
 </script>
 </body>
 </html>

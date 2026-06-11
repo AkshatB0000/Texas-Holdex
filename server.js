@@ -60,6 +60,7 @@ function initRoom(roomId) {
     currentInstance: 0,
     leaderboard: {},
     roundPnl: {},
+    txLog: [],
   };
   return rooms[roomId];
 }
@@ -115,6 +116,7 @@ function buildClientState(room, playerId) {
     currentInstance: room.currentInstance,
     leaderboard: room.leaderboard,
     roundPnl: room.roundPnl,
+    txLog: room.txLog,
   };
 }
 
@@ -195,6 +197,7 @@ io.on('connection', (socket) => {
     for (const p of room.players) room.roundPnl[p.id] = 0;
 
     // Reset auction state — no opening bid yet
+    room.txLog = [];
     room.auction = { currentBid: null, currentLeader: null, timerEnd: null, timerHandle: null };
     room.phase = 'auction';
     broadcastRoom(roomId);
@@ -219,6 +222,8 @@ io.on('connection', (socket) => {
     // New leading bid — reset timer
     room.auction.currentBid = bid;
     room.auction.currentLeader = playerId;
+    const bidderName = (room.players.find(p => p.id === playerId) || {}).name || 'Unknown';
+    room.txLog.push({ type: 'bid', playerName: bidderName, spread: bid, ts: Date.now() });
     startAuctionTimer(room);
     broadcastRoom(roomId);
   });
@@ -243,6 +248,14 @@ io.on('connection', (socket) => {
     if (inst.v === null || inst.done) return;
     if (!['long', 'short'].includes(position)) return;
     inst.positions[playerId] = position;
+    const pName = (room.players.find(p => p.id === playerId) || {}).name || 'Unknown';
+    room.txLog.push({
+      type: position === 'long' ? 'buy' : 'sell',
+      playerName: pName,
+      price: position === 'long' ? (inst.v + room.spread) : inst.v,
+      instance: room.currentInstance + 1,
+      ts: Date.now(),
+    });
 
     const nonMM = room.players.filter(p => p.id !== room.marketMaker);
     if (nonMM.every(p => inst.positions[p.id])) {
