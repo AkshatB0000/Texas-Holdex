@@ -9,15 +9,16 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── Game state store (keyed by roomId) ──────────────────────────────────────
 const rooms = {};
 
 const SUITS = ['♠', '♣', '♥', '♦'];
 const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 function isRed(suit) { return suit === '♥' || suit === '♦'; }
 function cardVal(rank) {
-  if (rank === 'A') return 11;
-  if (['J','Q','K'].includes(rank)) return 10;
+  if (rank === 'A') return 1;
+  if (rank === 'J') return 11;
+  if (rank === 'Q') return 12;
+  if (rank === 'K') return 13;
   return parseInt(rank);
 }
 
@@ -31,26 +32,34 @@ function newDeck() {
   return d;
 }
 
+const AUCTION_SECONDS = 8;
+
 function initRoom(roomId) {
   rooms[roomId] = {
     id: roomId,
-    phase: 'lobby',       // lobby | auction | market | results
-    players: [],          // [{ id, name, socketId }]
+    phase: 'lobby',
+    players: [],
     host: null,
     deck: [],
-    hands: {},            // playerId -> [card, card]
+    hands: {},
     community: [],
-    marketMaker: null,    // playerId
+    marketMaker: null,
     spread: 0,
-    bids: {},             // playerId -> number
+    // Descending auction state
+    auction: {
+      currentBid: null,   // current lowest bid on the table
+      currentLeader: null, // playerId of current leader
+      timerEnd: null,      // epoch ms when timer expires
+      timerHandle: null,   // server-side setTimeout handle
+    },
     instances: [
       { done: false, v: null, positions: {} },
       { done: false, v: null, positions: {} },
       { done: false, v: null, positions: {} },
     ],
     currentInstance: 0,
-    leaderboard: {},      // playerId -> cumulative pnl
-    roundPnl: {},         // playerId -> this round pnl
+    leaderboard: {},
+    roundPnl: {},
   };
   return rooms[roomId];
 }
@@ -60,7 +69,6 @@ function getRoom(roomId) { return rooms[roomId]; }
 function broadcastRoom(roomId) {
   const room = getRoom(roomId);
   if (!room) return;
-  // Send each player a personalised view (they only see their own hand)
   for (const player of room.players) {
     const socket = io.sockets.sockets.get(player.socketId);
     if (!socket) continue;
@@ -69,24 +77,23 @@ function broadcastRoom(roomId) {
 }
 
 function buildClientState(room, playerId) {
-  // Sanitise: other players' hands are hidden until results phase
   const hands = {};
   for (const p of room.players) {
     if (p.id === playerId || room.phase === 'results') {
       hands[p.id] = room.hands[p.id] || [];
     } else {
-      hands[p.id] = (room.hands[p.id] || []).map(() => null); // hidden
+      // MM can see who has positioned (but not their cards until results)
+      hands[p.id] = (room.hands[p.id] || []).map(() => null);
     }
   }
 
-  // Community cards: reveal based on current instance
   let visibleCommunity = room.community;
   if (room.phase === 'market') {
     const fc = [0, 3, 5][room.currentInstance];
     visibleCommunity = room.community.map((c, i) => i < fc ? c : null);
   }
-  if (room.phase === 'results') {
-    visibleCommunity = room.community;
+  if (room.phase !== 'market' && room.phase !== 'results') {
+    visibleCommunity = room.community.map(() => null);
   }
 
   return {
@@ -99,7 +106,11 @@ function buildClientState(room, playerId) {
     community: visibleCommunity,
     marketMaker: room.marketMaker,
     spread: room.spread,
-    bids: room.bids,
+    auction: {
+      currentBid: room.auction.currentBid,
+      currentLeader: room.auction.currentLeader,
+      timerEnd: room.auction.timerEnd,
+    },
     instances: room.instances,
     currentInstance: room.currentInstance,
     leaderboard: room.leaderboard,
@@ -116,10 +127,26 @@ function computeScore(room) {
   return score;
 }
 
-// ── Socket handlers ──────────────────────────────────────────────────────────
+function resolveAuction(room) {
+  if (room.auction.timerHandle) clearTimeout(room.auction.timerHandle);
+  room.auction.timerHandle = null;
+  room.marketMaker = room.auction.currentLeader;
+  room.spread = room.auction.currentBid;
+  room.phase = 'market';
+  broadcastRoom(room.id);
+}
+
+function startAuctionTimer(room) {
+  if (room.auction.timerHandle) clearTimeout(room.auction.timerHandle);
+  room.auction.timerEnd = Date.now() + AUCTION_SECONDS * 1000;
+  room.auction.timerHandle = setTimeout(() => {
+    const r = getRoom(room.id);
+    if (r && r.phase === 'auction') resolveAuction(r);
+  }, AUCTION_SECONDS * 1000);
+}
+
 io.on('connection', (socket) => {
 
-  // Create a new room
   socket.on('createRoom', ({ name }) => {
     const roomId = Math.random().toString(36).slice(2, 7).toUpperCase();
     const room = initRoom(roomId);
@@ -133,7 +160,6 @@ io.on('connection', (socket) => {
     broadcastRoom(roomId);
   });
 
-  // Join existing room
   socket.on('joinRoom', ({ roomId, name }) => {
     const room = getRoom(roomId);
     if (!room) { socket.emit('error', 'Room not found'); return; }
@@ -147,7 +173,6 @@ io.on('connection', (socket) => {
     broadcastRoom(roomId);
   });
 
-  // Host starts the game
   socket.on('startGame', () => {
     const { roomId, playerId } = socket.data;
     const room = getRoom(roomId);
@@ -166,40 +191,38 @@ io.on('connection', (socket) => {
       { done: false, v: null, positions: {} },
     ];
     room.currentInstance = 0;
-    room.bids = {};
     room.roundPnl = {};
     for (const p of room.players) room.roundPnl[p.id] = 0;
+
+    // Reset auction state — no opening bid yet
+    room.auction = { currentBid: null, currentLeader: null, timerEnd: null, timerHandle: null };
     room.phase = 'auction';
     broadcastRoom(roomId);
   });
 
-  // Player submits auction bid
+  // Descending auction: player submits a bid lower than current
   socket.on('submitBid', ({ bid }) => {
     const { roomId, playerId } = socket.data;
     const room = getRoom(roomId);
     if (!room || room.phase !== 'auction') return;
     if (typeof bid !== 'number' || bid < 0) return;
-    room.bids[playerId] = bid;
 
-    // If all players have bid, resolve automatically
-    if (Object.keys(room.bids).length === room.players.length) {
-      resolveAuction(room);
+    const curr = room.auction.currentBid;
+
+    // First bid: any value is accepted
+    // Subsequent bids: must be strictly lower than current
+    if (curr !== null && bid >= curr) {
+      socket.emit('error', `Bid must be lower than current bid of ${curr}`);
+      return;
     }
+
+    // New leading bid — reset timer
+    room.auction.currentBid = bid;
+    room.auction.currentLeader = playerId;
+    startAuctionTimer(room);
     broadcastRoom(roomId);
   });
 
-  function resolveAuction(room) {
-    const entries = Object.entries(room.bids);
-    const minBid = Math.min(...entries.map(([, v]) => v));
-    const tied = entries.filter(([, v]) => v === minBid);
-    // Random tie-break
-    const [winnerId] = tied[Math.floor(Math.random() * tied.length)];
-    room.marketMaker = winnerId;
-    room.spread = minBid;
-    room.phase = 'market';
-  }
-
-  // Market maker posts a sell price v for the current instance
   socket.on('postMarket', ({ v }) => {
     const { roomId, playerId } = socket.data;
     const room = getRoom(roomId);
@@ -211,7 +234,6 @@ io.on('connection', (socket) => {
     broadcastRoom(roomId);
   });
 
-  // Non-MM player takes a position (long/short) on the current instance
   socket.on('takePosition', ({ position }) => {
     const { roomId, playerId } = socket.data;
     const room = getRoom(roomId);
@@ -222,14 +244,12 @@ io.on('connection', (socket) => {
     if (!['long', 'short'].includes(position)) return;
     inst.positions[playerId] = position;
 
-    // Check if all non-MM players have positioned
     const nonMM = room.players.filter(p => p.id !== room.marketMaker);
     if (nonMM.every(p => inst.positions[p.id])) {
       inst.done = true;
       if (room.currentInstance < 2) {
         room.currentInstance++;
       } else {
-        // All 3 instances done — compute results
         finalizeRound(room);
       }
     }
@@ -250,14 +270,10 @@ io.on('connection', (socket) => {
         if (p.id === room.marketMaker) continue;
         const pos = inst.positions[p.id];
         if (pos === 'long') {
-          // Player bought at buyPrice (v+k)
           room.roundPnl[p.id] += (finalScore - buyPrice);
-          // MM sold at buyPrice (v+k), so MM is short: earns (v+k) - finalScore
           room.roundPnl[room.marketMaker] += (buyPrice - finalScore);
         } else {
-          // Player sold at sellPrice (v)
           room.roundPnl[p.id] += (sellPrice - finalScore);
-          // MM bought at sellPrice (v), so MM is long: earns finalScore - v
           room.roundPnl[room.marketMaker] += (finalScore - sellPrice);
         }
       }
@@ -270,7 +286,6 @@ io.on('connection', (socket) => {
     room.phase = 'results';
   }
 
-  // Host starts a new round
   socket.on('newRound', () => {
     const { roomId, playerId } = socket.data;
     const room = getRoom(roomId);
@@ -284,6 +299,10 @@ io.on('connection', (socket) => {
     if (!roomId || !playerId) return;
     const room = getRoom(roomId);
     if (!room) return;
+    if (room.auction.timerHandle && room.auction.currentLeader === playerId) {
+      clearTimeout(room.auction.timerHandle);
+      room.auction.timerHandle = null;
+    }
     room.players = room.players.filter(p => p.id !== playerId);
     if (room.players.length === 0) {
       delete rooms[roomId];
