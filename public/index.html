@@ -18,62 +18,44 @@
     --radius: 10px; --radius-sm: 6px;
   }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
-
-  /* ── Layout ── */
   #layout { display: flex; gap: 1rem; max-width: 1100px; margin: 0 auto; padding: 1.25rem; align-items: flex-start; }
   #app { flex: 1; min-width: 0; }
   #sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
-  @media (max-width: 720px) {
-    #layout { flex-direction: column; padding: 0.75rem; }
-    #sidebar { width: 100%; position: static; order: -1; }
-  }
+  @media (max-width: 720px) { #layout { flex-direction: column; padding: 0.75rem; } #sidebar { width: 100%; position: static; order: -1; } }
 
   h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
   h2 { font-size: 17px; font-weight: 600; }
   h3 { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
   p  { font-size: 14px; color: var(--muted); line-height: 1.5; }
-  .screen { display: none; }
-  .screen.active { display: block; }
+  .screen { display: none; } .screen.active { display: block; }
   .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
   .card-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
 
-  /* ── Playing cards ── */
   .pcard { width: 52px; height: 72px; border-radius: 7px; border: 0.5px solid rgba(255,255,255,0.15); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; flex-shrink: 0; }
-  .pcard .rank { font-size: 14px; font-weight: 700; line-height: 1; }
-  .pcard .suit { font-size: 22px; line-height: 1; }
-  .pcard.red .rank, .pcard.red .suit { color: #c0392b; }
-  .pcard.black .rank, .pcard.black .suit { color: #111; }
-  .pcard.sm { width: 38px; height: 54px; }
-  .pcard.sm .rank { font-size: 11px; }
-  .pcard.sm .suit { font-size: 16px; }
+  .pcard .rank { font-size: 14px; font-weight: 700; line-height: 1; } .pcard .suit { font-size: 22px; line-height: 1; }
+  .pcard.red .rank, .pcard.red .suit { color: #c0392b; } .pcard.black .rank, .pcard.black .suit { color: #111; }
+  .pcard.sm { width: 38px; height: 54px; } .pcard.sm .rank { font-size: 11px; } .pcard.sm .suit { font-size: 16px; }
   .pcard.hidden { background: #1e3a5f; border-color: #2563eb55; }
 
-  /* ── Buttons ── */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity .15s; }
-  .btn:hover { opacity: .85; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity .15s; }
+  .btn:hover { opacity: .85; } .btn:disabled { opacity: .35; cursor: not-allowed; }
   .btn-blue  { background: var(--blue);  border-color: var(--blue);  color: #fff; }
   .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
   .btn-red   { background: var(--red);   border-color: var(--red);   color: #fff; }
   .btn-gold  { background: var(--gold);  border-color: var(--gold);  color: #111; }
-  .btn:disabled { opacity: .35; cursor: not-allowed; }
 
-  /* ── Inputs ── */
   input[type=text], input[type=number] { background: var(--surface2); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); padding: 8px 12px; font-size: 14px; outline: none; }
   input:focus { border-color: var(--blue); }
   label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
 
-  /* ── Tags ── */
   .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-  .tag-blue  { background: var(--blue-dim);  color: var(--blue);  }
-  .tag-green { background: var(--green-dim); color: var(--green); }
-  .tag-red   { background: var(--red-dim);   color: var(--red);   }
-  .tag-gold  { background: var(--gold-dim);  color: var(--gold);  }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); } .tag-red { background: var(--red-dim); color: var(--red); }
+  .tag-gold { background: var(--gold-dim); color: var(--gold); } .tag-green { background: var(--green-dim); color: var(--green); }
 
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
-  .row > * { flex: 1; min-width: 140px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; } .row > * { flex: 1; min-width: 140px; }
   .mt { margin-top: 0.75rem; }
   .player-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 13px; }
-  .player-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .player-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
   #players-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0.75rem 0; }
   .tabs { display: flex; gap: 6px; margin-bottom: 0.75rem; flex-wrap: wrap; }
   .tab { padding: 6px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 13px; }
@@ -88,7 +70,7 @@
   .room-code { font-size: 32px; font-weight: 800; letter-spacing: 6px; color: var(--gold); }
   .waiting { color: var(--muted); font-size: 13px; font-style: italic; }
 
-  /* ── Auction ── */
+  /* auction */
   .auction-hero { text-align: center; padding: 1.25rem 1rem 0.75rem; }
   .current-bid-val { font-size: 56px; font-weight: 800; color: var(--gold); line-height: 1; font-variant-numeric: tabular-nums; }
   .leader-name { font-size: 15px; font-weight: 600; margin-top: 6px; }
@@ -101,26 +83,17 @@
   .bid-log-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
   .bid-log-row.hi { color: var(--gold); }
 
-  /* ── Position slider ── */
-  .slider-wrap { margin: 1rem 0; }
-  .slider-track { position: relative; height: 48px; border-radius: 24px; background: linear-gradient(to right, var(--red-dim), var(--surface2) 50%, var(--blue-dim)); border: 0.5px solid var(--border2); cursor: pointer; user-select: none; }
-  .slider-labels { display: flex; justify-content: space-between; padding: 0 16px; pointer-events: none; }
-  .slider-labels span { font-size: 12px; font-weight: 700; line-height: 48px; }
-  .slider-labels .lbl-short { color: var(--red); }
-  .slider-labels .lbl-long  { color: var(--blue); }
-  .slider-thumb { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: left 0.15s, border-color 0.15s; pointer-events: none; }
-  .slider-thumb.side-short { border-color: var(--red);  color: var(--red);  background: var(--red-dim); }
-  .slider-thumb.side-long  { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
-  .slider-price-display { display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; }
-  .slider-price-display .sp { color: var(--red);  font-weight: 600; }
-  .slider-price-display .lp { color: var(--blue); font-weight: 600; }
-  .slider-price-display .mp { color: var(--muted); font-size: 12px; }
-
-  /* ── Position countdown bar ── */
+  /* market */
+  .price-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0.75rem 0; }
+  .price-box { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; text-align: center; min-width: 80px; }
+  .price-box .pl { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .price-box .pv { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pos-btn-row { display: flex; gap: 10px; margin-top: 0.75rem; }
+  .pos-btn-row .btn { flex: 1; padding: 14px; font-size: 15px; }
   .pos-timer-bar-wrap { height: 4px; background: var(--surface2); border-radius: 2px; margin-bottom: 0.75rem; overflow: hidden; }
   .pos-timer-bar { height: 100%; border-radius: 2px; transition: width 0.25s linear, background 0.3s; }
 
-  /* ── Sidebar ── */
+  /* sidebar */
   .sb-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
   .sb-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.5rem; }
   .sb-player-row { display: flex; align-items: center; gap: 7px; padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
@@ -131,17 +104,8 @@
   #sb-txlog { max-height: 320px; overflow-y: auto; }
   .tx-row { padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; display: flex; flex-direction: column; gap: 1px; }
   .tx-row:last-child { border-bottom: none; }
-  .tx-action { font-weight: 600; }
-  .tx-buy  { color: var(--blue); }
-  .tx-sell { color: var(--red); }
-  .tx-bid  { color: var(--gold); }
+  .tx-action { font-weight: 600; } .tx-buy { color: var(--blue); } .tx-sell { color: var(--red); } .tx-bid { color: var(--gold); }
   .tx-meta { color: var(--muted); font-size: 11px; }
-
-  /* ── Market price boxes ── */
-  .price-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0.75rem 0; }
-  .price-box { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; text-align: center; min-width: 80px; }
-  .price-box .pl { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
-  .price-box .pv { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
   #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--red); color: #fff; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; display: none; z-index: 999; }
 </style>
@@ -160,13 +124,6 @@
       <div>
         <label>Join existing room</label>
         <div style="display:flex;gap:6px;"><input type="text" id="join-code" placeholder="Room code" maxlength="5" style="text-transform:uppercase;width:120px;"><button class="btn btn-gold" onclick="joinRoom()">Join</button></div>
-      </div>
-    </div>
-    <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border);">
-      <label>Rejoin a game in progress</label>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <input type="text" id="rejoin-code" placeholder="Room code" maxlength="5" style="text-transform:uppercase;width:120px;">
-        <button class="btn" onclick="rejoinRoom()">Rejoin</button>
       </div>
     </div>
   </div>
@@ -207,9 +164,9 @@
         <text class="timer-text" id="timer-label" x="36" y="36" transform="rotate(90,36,36)">13</text>
       </svg>
     </div>
-    <p style="text-align:center;margin-bottom:0.75rem;font-size:13px;">Bid lower than the current spread. No new bid in 13s = winner locked.</p>
+    <p style="text-align:center;margin-bottom:0.75rem;font-size:13px;">Bid a whole-number spread lower than current. No new bid in 13s = winner locked.</p>
     <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
-      <input type="number" id="bid-input" min="0" step="0.5" placeholder="your spread bid" style="width:160px;" onkeydown="if(event.key==='Enter')submitBid();">
+      <input type="number" id="bid-input" min="0" step="1" placeholder="integer spread bid" style="width:180px;" onkeydown="if(event.key==='Enter')submitBid();">
       <button class="btn btn-gold" onclick="submitBid()">Bid ↓</button>
     </div>
     <div id="bid-error" style="text-align:center;font-size:13px;color:var(--red);margin-top:6px;min-height:18px;"></div>
@@ -228,9 +185,7 @@
     <h2>Market Making</h2>
     <span class="room-code" id="market-code" style="font-size:20px;letter-spacing:4px;"></span>
   </div>
-  <div id="mm-banner" class="card" style="border-color:var(--blue);background:var(--blue-dim);margin-bottom:0.75rem;">
-    <div id="mm-banner-text"></div>
-  </div>
+  <div id="mm-banner" class="card" style="border-color:var(--blue);background:var(--blue-dim);margin-bottom:0.75rem;"><div id="mm-banner-text"></div></div>
   <div class="tabs" id="market-tabs"></div>
   <div class="card"><h3 style="margin-bottom:0.5rem;">Community cards</h3><div class="card-row" id="market-community"></div></div>
   <div class="card"><h3 style="margin-bottom:0.5rem;">Your hand</h3><div class="card-row" id="market-hand"></div></div>
@@ -259,20 +214,25 @@
 
 <!-- SIDEBAR -->
 <div id="sidebar">
-  <div class="sb-card">
-    <div class="sb-title">Players</div>
-    <div id="sb-players"></div>
-  </div>
-  <div class="sb-card">
-    <div class="sb-title">Transaction Log</div>
-    <div id="sb-txlog"><p class="waiting" style="font-size:12px;padding:4px 0;">No activity yet</p></div>
-  </div>
+  <div class="sb-card"><div class="sb-title">Players</div><div id="sb-players"></div></div>
+  <div class="sb-card"><div class="sb-title">Transaction Log</div><div id="sb-txlog"><p class="waiting" style="font-size:12px;padding:4px 0;">No activity yet</p></div></div>
 </div>
-
 </div><!-- /layout -->
 <div id="toast"></div>
 
 <script>
+// ── Stable player ID stored in localStorage ───────────────────────────────────
+function getOrCreatePid() {
+  let pid = localStorage.getItem('holdex_pid');
+  if (!pid) { pid = 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('holdex_pid', pid); }
+  return pid;
+}
+function getSavedRoom() { return localStorage.getItem('holdex_room'); }
+function saveRoom(roomId) { localStorage.setItem('holdex_room', roomId); }
+function clearRoom() { localStorage.removeItem('holdex_room'); }
+
+const MY_PID = getOrCreatePid();
+
 const socket = io({ reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 1000 });
 let myId = null;
 let currentState = null;
@@ -282,53 +242,38 @@ let bidLog = [];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen-' + id).classList.add('active'); }
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3500); }
 function pcardHTML(c, sm) {
   if (!c) return `<div class="pcard${sm?' sm':''} hidden"></div>`;
   return `<div class="pcard${sm?' sm':''} ${c.red?'red':'black'}"><span class="rank">${c.rank}</span><span class="suit">${c.suit}</span></div>`;
 }
-// Fixed number formatting — rounds to 2 decimal places, trims trailing zeros
-function fmt(v) {
-  const n = Math.round(v * 100) / 100;
-  return n % 1 === 0 ? n.toString() : n.toFixed(2).replace(/\.?0+$/, '');
-}
-function pnlStr(v)   { const s = fmt(Math.abs(v)); return (v >= 0 ? '+' : '-') + s; }
+function fmt(v) { const n = Math.round(v * 1000) / 1000; return n % 1 === 0 ? n.toString() : parseFloat(n.toFixed(3)).toString(); }
+function pnlStr(v) { return (v >= 0 ? '+' : '') + fmt(v); }
 function pnlClass(v) { return v >= 0 ? 'pnl-pos' : 'pnl-neg'; }
 function playerName(s, id) { return (s.players.find(p => p.id === id) || {}).name || '?'; }
-function cardVal(rank) {
-  if (rank === 'A') return 1; if (rank === 'J') return 11; if (rank === 'Q') return 12; if (rank === 'K') return 13;
-  return parseInt(rank);
-}
+function cardVal(rank) { if(rank==='A')return 1; if(rank==='J')return 11; if(rank==='Q')return 12; if(rank==='K')return 13; return parseInt(rank); }
+
+// ── Auto-rejoin on reconnect ──────────────────────────────────────────────────
+socket.on('connect', () => {
+  const saved = getSavedRoom();
+  if (saved && currentState) {
+    socket.emit('rejoinRoom', { roomId: saved, pid: MY_PID });
+  }
+});
 
 // ── Entry ─────────────────────────────────────────────────────────────────────
 function createRoom() {
   const name = document.getElementById('entry-name').value.trim();
   if (!name) { toast('Enter your name'); return; }
-  socket.emit('createRoom', { name });
+  socket.emit('createRoom', { name, pid: MY_PID });
 }
 function joinRoom() {
   const name = document.getElementById('entry-name').value.trim();
   const code = document.getElementById('join-code').value.trim().toUpperCase();
   if (!name) { toast('Enter your name'); return; }
   if (!code)  { toast('Enter a room code'); return; }
-  socket.emit('joinRoom', { roomId: code, name });
+  socket.emit('joinRoom', { roomId: code, name, pid: MY_PID });
 }
-function rejoinRoom() {
-  const name = document.getElementById('entry-name').value.trim();
-  const code = document.getElementById('rejoin-code').value.trim().toUpperCase();
-  if (!name) { toast('Enter your name'); return; }
-  if (!code)  { toast('Enter a room code'); return; }
-  socket.emit('rejoinRoom', { roomId: code, name });
-}
-
-// ── Auto-rejoin on reconnect ──────────────────────────────────────────────────
-socket.on('connect', () => {
-  // If we were already in a game, try to rejoin automatically
-  if (currentState && currentState.roomId) {
-    const myPlayer = currentState.players.find(p => p.id === myId);
-    if (myPlayer) socket.emit('rejoinRoom', { roomId: currentState.roomId, name: myPlayer.name });
-  }
-});
 
 // ── Game actions ──────────────────────────────────────────────────────────────
 function startGame() { socket.emit('startGame'); }
@@ -339,100 +284,58 @@ function postMarket() {
   socket.emit('postMarket', { v });
 }
 function submitBid() {
-  const v = parseFloat(document.getElementById('bid-input').value);
-  if (isNaN(v) || v < 0) { toast('Enter a valid bid'); return; }
+  const raw = document.getElementById('bid-input').value;
+  const v = parseInt(raw, 10);
+  if (!Number.isInteger(v) || v < 0 || String(v) !== raw.trim()) { document.getElementById('bid-error').textContent = 'Bid must be a non-negative integer'; return; }
   document.getElementById('bid-error').textContent = '';
   socket.emit('submitBid', { bid: v });
 }
+function takePosition(pos) { socket.emit('takePosition', { position: pos }); }
 
-// ── Slider state ──────────────────────────────────────────────────────────────
-let sliderChoice = null; // 'long' | 'short' | null
-
-function initSlider(buyPrice, sellPrice, myPos) {
-  sliderChoice = myPos || null;
-  const wrap = document.getElementById('slider-wrap');
-  if (!wrap) return;
-  const track = wrap.querySelector('.slider-track');
-  const thumb = wrap.querySelector('.slider-thumb');
-  const submitBtn = document.getElementById('pos-submit-btn');
-
-  function setChoice(side) {
-    sliderChoice = side;
-    const pct = side === 'short' ? 10 : 90;
-    thumb.style.left = pct + '%';
-    thumb.classList.toggle('side-short', side === 'short');
-    thumb.classList.toggle('side-long',  side === 'long');
-    thumb.textContent = side === 'short' ? 'SHORT' : 'LONG';
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.className = 'btn ' + (side === 'long' ? 'btn-blue' : 'btn-red');
-      submitBtn.textContent = side === 'long' ? `Submit Long @ ${fmt(buyPrice)}` : `Submit Short @ ${fmt(sellPrice)}`;
-    }
-  }
-
-  if (myPos) { setChoice(myPos); return; }
-
-  // Center by default
-  thumb.style.left = '50%';
-  thumb.className = 'slider-thumb';
-  thumb.textContent = '?';
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Select a side'; }
-
-  function handleInteraction(clientX) {
-    if (myPos) return;
-    const rect = track.getBoundingClientRect();
-    const pct = (clientX - rect.left) / rect.width;
-    setChoice(pct < 0.5 ? 'short' : 'long');
-  }
-
-  track.onmousedown = (e) => { handleInteraction(e.clientX); };
-  track.ontouchstart = (e) => { e.preventDefault(); handleInteraction(e.touches[0].clientX); };
-}
-
-function submitPosition() {
-  if (!sliderChoice) { toast('Select long or short first'); return; }
-  socket.emit('takePosition', { position: sliderChoice });
-}
-
-// ── State ─────────────────────────────────────────────────────────────────────
-socket.on('state', (s) => { currentState = s; myId = s.myId; renderState(s); });
-socket.on('error', (msg) => { toast(msg); const e = document.getElementById('bid-error'); if (e) e.textContent = msg; });
+// ── Socket state ──────────────────────────────────────────────────────────────
+socket.on('state', (s) => {
+  currentState = s;
+  myId = s.myId;
+  if (s.roomId) saveRoom(s.roomId);
+  renderState(s);
+});
+socket.on('error', (msg) => {
+  toast(msg);
+  const e = document.getElementById('bid-error');
+  if (e) e.textContent = msg;
+});
 
 function renderState(s) {
   renderSidebar(s);
   switch (s.phase) {
-    case 'lobby':   renderLobby(s);   showScreen('lobby');   break;
+    case 'lobby':   bidLog = []; stopAuctionTimer(); stopPosTimer(); renderLobby(s);   showScreen('lobby');   break;
     case 'auction': renderAuction(s); showScreen('auction'); break;
     case 'market':  renderMarket(s);  showScreen('market');  break;
-    case 'results': renderResults(s); showScreen('results'); break;
+    case 'results': stopAuctionTimer(); stopPosTimer(); renderResults(s); showScreen('results'); break;
   }
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 function renderSidebar(s) {
   const pe = document.getElementById('sb-players');
-  if (pe) {
-    pe.innerHTML = s.players.map(p => {
-      const pnl = s.leaderboard[p.id] || 0;
-      const isMM = p.id === s.marketMaker;
-      const isMe = p.id === s.myId;
-      const dot = isMM ? 'var(--gold)' : (p.connected === false ? 'var(--muted)' : 'var(--green)');
-      return `<div class="sb-player-row">
-        <span class="sb-dot" style="background:${dot};"></span>
-        <span class="sb-name">${p.name}${isMM?' <span style="font-size:10px;color:var(--gold);">MM</span>':''}${isMe?' <span style="font-size:10px;color:var(--muted);">(you)</span>':''}${p.connected===false?' <span style="font-size:10px;color:var(--muted);">away</span>':''}</span>
-        <span class="sb-pnl ${pnlClass(pnl)}">${pnlStr(pnl)}</span>
-      </div>`;
-    }).join('');
-  }
+  if (pe) pe.innerHTML = s.players.map(p => {
+    const pnl = s.leaderboard[p.id] || 0;
+    const isMM = p.id === s.marketMaker, isMe = p.id === s.myId;
+    const dot = isMM ? 'var(--gold)' : p.connected === false ? 'var(--muted)' : 'var(--green)';
+    return `<div class="sb-player-row">
+      <span class="sb-dot" style="background:${dot};"></span>
+      <span class="sb-name">${p.name}${isMM?' <span style="font-size:10px;color:var(--gold);">MM</span>':''}${isMe?' <span style="font-size:10px;color:var(--muted);">(you)</span>':''}${p.connected===false?' <span style="font-size:10px;color:var(--muted);">away</span>':''}</span>
+      <span class="sb-pnl ${pnlClass(pnl)}">${pnlStr(pnl)}</span>
+    </div>`;
+  }).join('');
+
   const te = document.getElementById('sb-txlog');
-  if (te && s.txLog) {
-    if (!s.txLog.length) {
+  if (te) {
+    if (!s.txLog || !s.txLog.length) {
       te.innerHTML = '<p class="waiting" style="font-size:12px;padding:4px 0;">No activity yet</p>';
     } else {
       te.innerHTML = [...s.txLog].reverse().map(tx => {
-        if (tx.type === 'bid') {
-          return `<div class="tx-row"><span class="tx-action tx-bid">BID ↓ ${fmt(tx.spread)}</span><span class="tx-meta">${tx.playerName}</span></div>`;
-        }
+        if (tx.type === 'bid') return `<div class="tx-row"><span class="tx-action tx-bid">BID ↓ ${fmt(tx.spread)}</span><span class="tx-meta">${tx.playerName}</span></div>`;
         const cls = tx.type === 'buy' ? 'tx-buy' : 'tx-sell';
         const lbl = tx.type === 'buy' ? 'LONG' : 'SHORT';
         return `<div class="tx-row"><span class="tx-action ${cls}">${lbl} @ ${fmt(tx.price)} <span style="font-size:10px;color:var(--muted);">I${tx.instance}</span></span><span class="tx-meta">${tx.playerName}${tx.forced?' (auto)':''}</span></div>`;
@@ -459,59 +362,40 @@ function renderLobby(s) {
 function renderAuction(s) {
   document.getElementById('auction-code').textContent = s.roomId;
   document.getElementById('auction-hand').innerHTML = (s.hands[s.myId]||[]).map(c => pcardHTML(c)).join('');
-
   const auc = s.auction;
-  const bidValEl  = document.getElementById('auction-bid-val');
-  const leaderEl  = document.getElementById('auction-leader');
-  const timerWrap = document.getElementById('timer-wrap');
-
+  const bidValEl = document.getElementById('auction-bid-val'), leaderEl = document.getElementById('auction-leader'), timerWrap = document.getElementById('timer-wrap');
   if (auc.currentBid === null) {
-    bidValEl.textContent = '—';
-    leaderEl.textContent = 'Open — place the first bid';
-    timerWrap.style.display = 'none';
-    stopAuctionTimer();
+    bidValEl.textContent = '—'; leaderEl.textContent = 'Open — place the first bid'; timerWrap.style.display = 'none'; stopAuctionTimer();
   } else {
     bidValEl.textContent = fmt(auc.currentBid);
     leaderEl.textContent = `Leading: ${playerName(s, auc.currentLeader)}${auc.currentLeader===s.myId?' (you)':''}`;
-    timerWrap.style.display = 'flex';
-    startAuctionTimer(auc.timerEnd);
+    timerWrap.style.display = 'flex'; startAuctionTimer(auc.timerEnd);
   }
-
-  // Build bid log from state changes
   if (auc.currentBid !== null) {
     const last = bidLog[bidLog.length - 1];
-    if (!last || last.bid !== auc.currentBid) {
-      bidLog.push({ bid: auc.currentBid, leader: auc.currentLeader, name: playerName(s, auc.currentLeader) });
-    }
+    if (!last || last.bid !== auc.currentBid) bidLog.push({ bid: auc.currentBid, leader: auc.currentLeader, name: playerName(s, auc.currentLeader) });
   }
-  const logEl = document.getElementById('bid-log');
-  logEl.innerHTML = bidLog.length === 0
-    ? '<p class="waiting">No bids yet.</p>'
+  document.getElementById('bid-log').innerHTML = bidLog.length === 0 ? '<p class="waiting">No bids yet.</p>'
     : [...bidLog].reverse().map((e,i) => `<div class="bid-log-row${i===0?' hi':''}"><span>${e.name}${e.leader===s.myId?' (you)':''}</span><strong style="color:var(--gold);">${fmt(e.bid)}</strong></div>`).join('');
-
   document.getElementById('auction-players').innerHTML = s.players.map(p =>
     `<div class="player-pill"><span class="dot" style="background:${p.id===auc.currentLeader?'var(--gold)':'var(--green)'}"></span>${p.name}${p.id===s.myId?' (you)':''}${p.id===auc.currentLeader?' 🏆':''}</div>`
   ).join('');
 }
 
-// ── Auction timer ─────────────────────────────────────────────────────────────
 const AUCTION_TOTAL = 13;
 function startAuctionTimer(timerEnd) {
   stopAuctionTimer();
-  const arc = document.getElementById('timer-arc');
-  const label = document.getElementById('timer-label');
+  const arc = document.getElementById('timer-arc'), label = document.getElementById('timer-label');
   const R = 30, CIRC = 2 * Math.PI * R;
   arc.style.strokeDasharray = CIRC;
   function tick() {
     const rem = Math.max(0, (timerEnd - Date.now()) / 1000);
-    const frac = rem / AUCTION_TOTAL;
-    arc.style.strokeDashoffset = CIRC * (1 - frac);
+    arc.style.strokeDashoffset = CIRC * (1 - rem / AUCTION_TOTAL);
     arc.style.stroke = rem <= 3 ? 'var(--red)' : rem <= 6 ? 'var(--gold)' : 'var(--green)';
     label.textContent = Math.ceil(rem);
     if (rem <= 0) stopAuctionTimer();
   }
-  tick();
-  auctionTimerInterval = setInterval(tick, 100);
+  tick(); auctionTimerInterval = setInterval(tick, 100);
 }
 function stopAuctionTimer() { if (auctionTimerInterval) { clearInterval(auctionTimerInterval); auctionTimerInterval = null; } }
 
@@ -520,181 +404,121 @@ const POS_TOTAL = 40;
 function startPosTimer(timerEnd) {
   stopPosTimer();
   function tick() {
-    const bar = document.getElementById('pos-timer-bar');
-    if (!bar) { stopPosTimer(); return; }
+    const bar = document.getElementById('pos-timer-bar'); if (!bar) { stopPosTimer(); return; }
     const rem = Math.max(0, (timerEnd - Date.now()) / 1000);
-    const pct = (rem / POS_TOTAL) * 100;
-    bar.style.width = pct + '%';
+    bar.style.width = (rem / POS_TOTAL * 100) + '%';
     bar.style.background = rem <= 10 ? 'var(--red)' : rem <= 20 ? 'var(--gold)' : 'var(--green)';
     if (rem <= 0) stopPosTimer();
   }
-  tick();
-  posTimerInterval = setInterval(tick, 250);
+  tick(); posTimerInterval = setInterval(tick, 250);
 }
 function stopPosTimer() { if (posTimerInterval) { clearInterval(posTimerInterval); posTimerInterval = null; } }
 
 function renderMarket(s) {
   document.getElementById('market-code').textContent = s.roomId;
-  const mmName = playerName(s, s.marketMaker);
-  const isMe = s.myId === s.marketMaker;
+  const mmName = playerName(s, s.marketMaker), isMe = s.myId === s.marketMaker;
   document.getElementById('mm-banner-text').innerHTML =
     `<strong style="color:var(--blue);">Market Maker: ${mmName}</strong>&nbsp;&nbsp;<span style="font-size:13px;color:rgba(147,197,253,0.8);">spread k = ${fmt(s.spread)}</span>${isMe?' <span class="tag tag-gold">You</span>':''}`;
-
   document.getElementById('market-tabs').innerHTML = ['No flop','3-card flop','5-card flop'].map((lbl,i) => {
-    let cls = 'tab';
-    if (s.instances[i].done || i < s.currentInstance) cls += ' done';
-    else if (i === s.currentInstance) cls += ' active';
+    let cls = 'tab'; if (s.instances[i].done||i<s.currentInstance) cls+=' done'; else if(i===s.currentInstance) cls+=' active';
     return `<div class="${cls}">${lbl}</div>`;
   }).join('');
-
   document.getElementById('market-community').innerHTML = s.community.map(c => pcardHTML(c)).join('');
   document.getElementById('market-hand').innerHTML = (s.hands[s.myId]||[]).map(c => pcardHTML(c)).join('');
 
-  const inst = s.instances[s.currentInstance];
-  const panel = document.getElementById('market-panel');
+  const inst = s.instances[s.currentInstance], panel = document.getElementById('market-panel');
 
-  if (s.currentInstance === 2 && inst.done) {
-    stopPosTimer();
-    panel.innerHTML = `<div class="card"><p style="color:var(--green);">✓ All instances complete — calculating results…</p></div>`;
-    return;
-  }
+  if (s.currentInstance === 2 && inst.done) { stopPosTimer(); panel.innerHTML = `<div class="card"><p style="color:var(--green);">✓ All instances complete — calculating results…</p></div>`; return; }
 
   if (inst.v === null) {
     stopPosTimer();
     if (isMe) {
-      panel.innerHTML = `
-        <div class="card">
-          <h3 style="margin-bottom:0.5rem;">Post your market (instance ${s.currentInstance+1})</h3>
-          <p style="margin-bottom:0.75rem;">Set sell price <strong>v</strong>. Others buy at v+${fmt(s.spread)} (long) or sell at v (short).</p>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="number" id="v-input" step="1" placeholder="sell price v" style="width:140px;" onkeydown="if(event.key==='Enter')postMarket();">
-            <span style="font-size:13px;color:var(--muted);">→ <span id="v-preview">? @ ?</span></span>
-          </div>
-          <button class="btn btn-blue mt" onclick="postMarket()">Post market →</button>
-        </div>`;
-      setTimeout(() => {
-        const vi = document.getElementById('v-input');
-        if (vi) vi.oninput = () => {
-          const v = parseFloat(vi.value);
-          document.getElementById('v-preview').textContent = isNaN(v) ? '? @ ?' : `${fmt(v)} @ ${fmt(v + s.spread)}`;
-        };
-      }, 0);
+      panel.innerHTML = `<div class="card">
+        <h3 style="margin-bottom:0.5rem;">Post your market (instance ${s.currentInstance+1})</h3>
+        <p style="margin-bottom:0.75rem;">Set sell price <strong>v</strong>. Others buy at v+${fmt(s.spread)} (long) or sell at v (short).</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="number" id="v-input" step="1" placeholder="sell price v" style="width:140px;" onkeydown="if(event.key==='Enter')postMarket();">
+          <span style="font-size:13px;color:var(--muted);">→ <span id="v-preview">? @ ?</span></span>
+        </div>
+        <button class="btn btn-blue mt" onclick="postMarket()">Post market →</button>
+      </div>`;
+      setTimeout(() => { const vi = document.getElementById('v-input'); if(vi) vi.oninput = () => { const v=parseFloat(vi.value); document.getElementById('v-preview').textContent = isNaN(v)?'? @ ?':`${fmt(v)} @ ${fmt(v+s.spread)}`; }; }, 0);
     } else {
       panel.innerHTML = `<div class="card"><p class="waiting">Waiting for ${mmName} to post the market…</p></div>`;
     }
     return;
   }
 
-  // Price is posted — start/continue position timer
   if (inst.posTimerEnd) startPosTimer(inst.posTimerEnd);
 
-  const buyPrice = inst.v + s.spread;
-  const sellPrice = inst.v;
+  const buyPrice = inst.v + s.spread, sellPrice = inst.v;
   const myPos = inst.positions[s.myId];
   const otherPlayers = s.players.filter(p => p.id !== s.marketMaker);
   const posCount = Object.keys(inst.positions).length;
   const allPositioned = posCount === otherPlayers.length;
 
-  // Position timer bar
   const timerBarHTML = `<div class="pos-timer-bar-wrap"><div class="pos-timer-bar" id="pos-timer-bar" style="width:100%;background:var(--green);"></div></div>`;
 
   let actionHTML = '';
   if (!isMe) {
     if (myPos) {
-      actionHTML = `<div style="margin-top:0.75rem;text-align:center;"><span class="tag ${myPos==='long'?'tag-blue':'tag-red'}" style="font-size:14px;padding:6px 16px;">${myPos==='long'?'LONG':'SHORT'} @ ${fmt(myPos==='long'?buyPrice:sellPrice)}</span><p class="waiting" style="margin-top:8px;">${allPositioned?'All positioned.':posCount+'/'+otherPlayers.length+' positioned…'}</p></div>`;
+      actionHTML = `<div style="margin-top:0.75rem;text-align:center;">
+        <span class="tag ${myPos==='long'?'tag-blue':'tag-red'}" style="font-size:14px;padding:8px 20px;">${myPos==='long'?'LONG':'SHORT'} @ ${fmt(myPos==='long'?buyPrice:sellPrice)}</span>
+        <p class="waiting" style="margin-top:8px;">${allPositioned?'All positioned — waiting for next instance.':posCount+'/'+otherPlayers.length+' positioned…'}</p>
+      </div>`;
     } else {
-      // Slider
-      actionHTML = `
-        <div class="slider-wrap" id="slider-wrap">
-          <div class="slider-track">
-            <div class="slider-labels"><span class="lbl-short">SHORT @ ${fmt(sellPrice)}</span><span class="lbl-long">LONG @ ${fmt(buyPrice)}</span></div>
-            <div class="slider-thumb" style="left:50%;">?</div>
-          </div>
-          <div class="slider-price-display">
-            <span class="sp">Sell at ${fmt(sellPrice)}</span>
-            <span class="mp">← drag to choose →</span>
-            <span class="lp">Buy at ${fmt(buyPrice)}</span>
-          </div>
-        </div>
-        <div style="text-align:center;margin-top:0.5rem;">
-          <button class="btn" id="pos-submit-btn" onclick="submitPosition()" disabled>Select a side</button>
-        </div>`;
+      actionHTML = `<div class="pos-btn-row">
+        <button class="btn btn-red" onclick="takePosition('short')">Short @ ${fmt(sellPrice)}</button>
+        <button class="btn btn-blue" onclick="takePosition('long')">Long @ ${fmt(buyPrice)}</button>
+      </div>
+      <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:6px;">No selection in time → defaults to Long</p>`;
     }
   } else {
-    // MM sees all positions
-    const posRows = otherPlayers.map(p => {
+    actionHTML = `<div style="margin-top:0.75rem;">${otherPlayers.map(p => {
       const pos = inst.positions[p.id];
       return `<div class="lb-row"><span>${p.name}</span><span>${pos?`<span class="tag ${pos==='long'?'tag-blue':'tag-red'}">${pos} @ ${fmt(pos==='long'?buyPrice:sellPrice)}</span>`:'…'}</span></div>`;
-    }).join('');
-    actionHTML = `<div style="margin-top:0.75rem;">${posRows}<p class="waiting" style="margin-top:6px;">${posCount}/${otherPlayers.length} positioned</p></div>`;
+    }).join('')}<p class="waiting" style="margin-top:6px;">${posCount}/${otherPlayers.length} positioned</p></div>`;
   }
 
-  // Others see anonymous count until all positioned, then full breakdown
   let posTableHTML = '';
-  if (!isMe) {
-    if (allPositioned) {
-      posTableHTML = `<div class="card"><h3 style="margin-bottom:0.5rem;">Final positions</h3>` +
-        otherPlayers.map(p => {
-          const pos = inst.positions[p.id];
-          return `<div class="lb-row"><span>${p.name}${p.id===s.myId?' (you)':''}</span><span><span class="tag ${pos==='long'?'tag-blue':'tag-red'}">${pos} @ ${fmt(pos==='long'?buyPrice:sellPrice)}</span></span></div>`;
-        }).join('') + `</div>`;
-    } else {
-      const longs  = Object.values(inst.positions).filter(p=>p==='long').length;
-      const shorts = Object.values(inst.positions).filter(p=>p==='short').length;
-      posTableHTML = `<div class="card"><div class="lb-row"><span>Longs</span><span style="color:var(--blue);font-weight:600;">${longs}</span></div><div class="lb-row"><span>Shorts</span><span style="color:var(--red);font-weight:600;">${shorts}</span></div><div class="lb-row"><span>Waiting</span><span>${otherPlayers.length - posCount}</span></div></div>`;
-    }
+  if (!isMe && allPositioned) {
+    posTableHTML = `<div class="card"><h3 style="margin-bottom:0.5rem;">All positions</h3>` +
+      otherPlayers.map(p => { const pos=inst.positions[p.id]; return `<div class="lb-row"><span>${p.name}${p.id===s.myId?' (you)':''}</span><span><span class="tag ${pos==='long'?'tag-blue':'tag-red'}">${pos} @ ${fmt(pos==='long'?buyPrice:sellPrice)}</span></span></div>`; }).join('') + `</div>`;
+  } else if (!isMe) {
+    const longs=Object.values(inst.positions).filter(p=>p==='long').length, shorts=Object.values(inst.positions).filter(p=>p==='short').length;
+    posTableHTML = `<div class="card"><div class="lb-row"><span>Longs</span><span style="color:var(--blue);font-weight:600;">${longs}</span></div><div class="lb-row"><span>Shorts</span><span style="color:var(--red);font-weight:600;">${shorts}</span></div><div class="lb-row"><span>Waiting</span><span>${otherPlayers.length-posCount}</span></div></div>`;
   }
 
-  panel.innerHTML = `
-    ${timerBarHTML}
-    <div class="card">
-      <h3 style="margin-bottom:0.5rem;">Instance ${s.currentInstance+1} market</h3>
-      <div class="price-row">
-        <div class="price-box"><div class="pl">Sell (short)</div><div class="pv" style="color:var(--red);">${fmt(sellPrice)}</div></div>
-        <span style="color:var(--muted);font-size:18px;">@</span>
-        <div class="price-box"><div class="pl">Buy (long)</div><div class="pv" style="color:var(--blue);">${fmt(buyPrice)}</div></div>
-      </div>
-      ${actionHTML}
-    </div>
-    ${posTableHTML}`;
-
-  // Init slider after DOM is ready
-  if (!isMe && !myPos) {
-    setTimeout(() => initSlider(buyPrice, sellPrice, myPos), 0);
-  }
+  panel.innerHTML = `${timerBarHTML}<div class="card"><h3 style="margin-bottom:0.5rem;">Instance ${s.currentInstance+1} market</h3>
+    <div class="price-row">
+      <div class="price-box"><div class="pl">Sell (short)</div><div class="pv" style="color:var(--red);">${fmt(sellPrice)}</div></div>
+      <span style="color:var(--muted);font-size:18px;">@</span>
+      <div class="price-box"><div class="pl">Buy (long)</div><div class="pv" style="color:var(--blue);">${fmt(buyPrice)}</div></div>
+    </div>${actionHTML}</div>${posTableHTML}`;
 }
 
 // ── Results ───────────────────────────────────────────────────────────────────
 function renderResults(s) {
-  stopAuctionTimer(); stopPosTimer(); bidLog = [];
   document.getElementById('results-code').textContent = s.roomId;
   document.getElementById('results-community').innerHTML = s.community.map(c => pcardHTML(c)).join('');
-
   let score = 0;
-  for (const c of s.community) score += (c.red?-1:1) * cardVal(c.rank);
-  for (const p of s.players) for (const c of (s.hands[p.id]||[])) score += (c.red?-1:1) * cardVal(c.rank);
+  for (const c of s.community) score += (c.red?-1:1)*cardVal(c.rank);
+  for (const p of s.players) for (const c of (s.hands[p.id]||[])) score += (c.red?-1:1)*cardVal(c.rank);
   const sd = document.getElementById('results-score');
-  sd.textContent = (score>=0?'+':'') + score;
-  sd.style.color = score>0?'var(--green)':score<0?'var(--red)':'var(--text)';
+  sd.textContent = (score>=0?'+':'')+score; sd.style.color = score>0?'var(--green)':score<0?'var(--red)':'var(--text)';
 
   document.getElementById('results-players').innerHTML = s.players.map(p => {
-    const isMM = p.id === s.marketMaker;
-    const pnl = s.roundPnl[p.id] || 0;
-    const handHTML = (s.hands[p.id]||[]).map(c => pcardHTML(c,true)).join('');
+    const isMM=p.id===s.marketMaker, pnl=s.roundPnl[p.id]||0;
+    const handHTML=(s.hands[p.id]||[]).map(c=>pcardHTML(c,true)).join('');
     let extra = '';
     if (!isMM) {
       extra = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">' +
-        s.instances.map((inst,idx) => {
-          const pos = inst.positions[p.id];
-          return `<span class="tag ${pos==='long'?'tag-blue':'tag-red'}">I${idx+1}: ${pos} @ ${fmt(pos==='long'?inst.v+s.spread:inst.v)}</span>`;
-        }).join('') + '</div>';
+        s.instances.map((inst,idx) => { const pos=inst.positions[p.id]; return `<span class="tag ${pos==='long'?'tag-blue':'tag-red'}">I${idx+1}: ${pos} @ ${fmt(pos==='long'?inst.v+s.spread:inst.v)}</span>`; }).join('') + '</div>';
     } else {
-      const trades = s.players.filter(q => q.id !== s.marketMaker).length * 3;
-      const spreadIncome = trades * s.spread;
-      const directional = pnl - spreadIncome;
+      const trades=s.players.filter(q=>q.id!==s.marketMaker).length*3, si=trades*s.spread, dir=pnl-si;
       extra = `<div style="margin-top:6px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px;">
-        <span>Spread: ${trades} × ${fmt(s.spread)} = <strong style="color:var(--green);">+${fmt(spreadIncome)}</strong></span>
-        <span>Directional: <strong style="color:${directional>=0?'var(--green)':'var(--red)'};">${pnlStr(directional)}</strong></span>
+        <span>Spread: ${trades} × ${fmt(s.spread)} = <strong style="color:var(--green);">+${fmt(si)}</strong></span>
+        <span>Directional: <strong style="color:${dir>=0?'var(--green)':'var(--red)'};">${pnlStr(dir)}</strong></span>
       </div>`;
     }
     return `<div class="reveal-card">
@@ -702,8 +526,7 @@ function renderResults(s) {
         <span style="font-weight:600;font-size:14px;">${p.name}${isMM?' <span class="tag tag-gold" style="font-size:11px;">MM</span>':''}</span>
         <span class="${pnlClass(pnl)}">${pnlStr(pnl)} pts</span>
       </div>
-      <div class="card-row" style="margin-top:8px;">${handHTML}</div>
-      ${extra}
+      <div class="card-row" style="margin-top:8px;">${handHTML}</div>${extra}
     </div>`;
   }).join('');
 
@@ -714,13 +537,9 @@ function renderResults(s) {
 }
 
 function renderLeaderboard(s, elId) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  const sorted = [...s.players].sort((a,b) => (s.leaderboard[b.id]||0) - (s.leaderboard[a.id]||0));
-  el.innerHTML = sorted.map((p,i) => {
-    const v = s.leaderboard[p.id] || 0;
-    return `<div class="lb-row"><span>#${i+1} ${p.name}</span><span class="${pnlClass(v)}">${pnlStr(v)} pts</span></div>`;
-  }).join('');
+  const el = document.getElementById(elId); if (!el) return;
+  const sorted = [...s.players].sort((a,b)=>(s.leaderboard[b.id]||0)-(s.leaderboard[a.id]||0));
+  el.innerHTML = sorted.map((p,i) => { const v=s.leaderboard[p.id]||0; return `<div class="lb-row"><span>#${i+1} ${p.name}</span><span class="${pnlClass(v)}">${pnlStr(v)} pts</span></div>`; }).join('');
 }
 </script>
 </body>
