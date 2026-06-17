@@ -480,21 +480,12 @@ function renderMarket(s) {
     }).join('')}<p class="waiting" style="margin-top:6px;">${posCount}/${otherPlayers.length} positioned</p></div>`;
   }
 
-  let posTableHTML = '';
-  if (!isMe && allPositioned) {
-    posTableHTML = `<div class="card"><h3 style="margin-bottom:0.5rem;">All positions</h3>` +
-      otherPlayers.map(p => { const pos=inst.positions[p.id]; return `<div class="lb-row"><span>${p.name}${p.id===s.myId?' (you)':''}</span><span><span class="tag ${pos==='long'?'tag-blue':'tag-red'}">${pos} @ ${fmt(pos==='long'?buyPrice:sellPrice)}</span></span></div>`; }).join('') + `</div>`;
-  } else if (!isMe) {
-    const longs=Object.values(inst.positions).filter(p=>p==='long').length, shorts=Object.values(inst.positions).filter(p=>p==='short').length;
-    posTableHTML = `<div class="card"><div class="lb-row"><span>Longs</span><span style="color:var(--blue);font-weight:600;">${longs}</span></div><div class="lb-row"><span>Shorts</span><span style="color:var(--red);font-weight:600;">${shorts}</span></div><div class="lb-row"><span>Waiting</span><span>${otherPlayers.length-posCount}</span></div></div>`;
-  }
-
   panel.innerHTML = `${timerBarHTML}<div class="card"><h3 style="margin-bottom:0.5rem;">Instance ${s.currentInstance+1} market</h3>
     <div class="price-row">
       <div class="price-box"><div class="pl">Sell (short)</div><div class="pv" style="color:var(--red);">${fmt(sellPrice)}</div></div>
       <span style="color:var(--muted);font-size:18px;">@</span>
       <div class="price-box"><div class="pl">Buy (long)</div><div class="pv" style="color:var(--blue);">${fmt(buyPrice)}</div></div>
-    </div>${actionHTML}</div>${posTableHTML}`;
+    </div>${actionHTML}</div>`;
 }
 
 // ── Results ───────────────────────────────────────────────────────────────────
